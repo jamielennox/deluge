@@ -42,16 +42,11 @@
 
 import os
 import sys
-from optparse import OptionParser
+import optparse
 
 import deluge.log
 import deluge.error
-
-try:
-    from deluge._libtorrent import lt
-    lt_version = "\nlibtorrent: %s" % lt.version
-except ImportError:
-    lt_version = ""
+from deluge.commonoptions import CommonOptionParser
 
 def start_ui():
     """Entry point for ui script"""
@@ -59,62 +54,25 @@ def start_ui():
     deluge.common.setup_translations()
 
     # Setup the argument parser
-    parser = OptionParser(usage="%prog [options] [actions]",
-                  version= "%prog: " + deluge.common.get_version() + lt_version)
+    parser = CommonOptionParser()
+    group = optparse.OptionGroup (parser, _("Default Options"))
 
-    parser.add_option("-u", "--ui", dest="ui",
+    group.add_option("-u", "--ui", dest="ui",
         help="""The UI that you wish to launch.  The UI choices are:\n
         \t gtk -- A GTK-based graphical user interface (default)\n
         \t web -- A web-based interface (http://localhost:8112)\n
         \t console -- A console or command-line interface""", action="store", type="str")
-    parser.add_option("-c", "--config", dest="config",
-        help="Set the config folder location", action="store", type="str")
-    parser.add_option("-l", "--logfile", dest="logfile",
-        help="Output to designated logfile instead of stdout", action="store", type="str")
-    parser.add_option("-a", "--args", dest="args",
+    group.add_option("-a", "--args", dest="args",
         help="Arguments to pass to UI, -a '--option args'", action="store", type="str")
-    parser.add_option("-L", "--loglevel", dest="loglevel",
-        help="Set the log level: none, info, warning, error, critical, debug", action="store", type="str")
-    parser.add_option("-q", "--quiet", dest="quiet",
-        help="Sets the log level to 'none', this is the same as `-L none`", action="store_true", default=False)
-    parser.add_option("-r", "--rotate-logs",
-        help="Rotate logfiles.", action="store_true", default=False)
-    parser.add_option("-s", "--set-default-ui", dest="default_ui",
+    group.add_option("-s", "--set-default-ui", dest="default_ui",
         help="Sets the default UI to be run when no UI is specified", action="store", type="str")
+    
+    parser.add_option_group(group)
 
     # Get the options and args from the OptionParser
     (options, args) = parser.parse_args()
 
-    if options.quiet:
-        options.loglevel = "none"
-
-    logfile_mode = 'w'
-    if options.rotate_logs:
-        logfile_mode = 'a'
-
-    # Setup the logger
-    deluge.log.setupLogger(level=options.loglevel, filename=options.logfile,
-                           filemode=logfile_mode)
-
-    if options.config:
-        if not os.path.exists(options.config):
-            # Try to create the config folder if it doesn't exist
-            try:
-                os.makedirs(options.config)
-            except Exception, e:
-                pass
-        elif not os.path.isdir(options.config):
-            print "Config option needs to be a directory!"
-            sys.exit(1)
-    else:
-        if not os.path.exists(deluge.common.get_default_config_dir()):
-            os.makedirs(deluge.common.get_default_config_dir())
-
     if options.default_ui:
-        import deluge.configmanager
-        if options.config:
-            deluge.configmanager.set_config_dir(options.config)
-
         config = deluge.configmanager.ConfigManager("ui.conf")
         config["default_ui"] = options.default_ui
         config.save()
@@ -144,59 +102,35 @@ def start_daemon():
         warnings.filterwarnings('ignore', category=DeprecationWarning, module='twisted')
 
     # Setup the argument parser
-    parser = OptionParser(usage="%prog [options] [actions]",
-                  version= "%prog: " + deluge.common.get_version() + lt_version)
-    parser.add_option("-p", "--port", dest="port",
+    parser = CommonOptionParser(usage="%prog [options] [actions]")
+
+    group = optparse.OptionGroup (parser, _("Daemon Options"))
+    group.add_option("-p", "--port", dest="port",
         help="Port daemon will listen on", action="store", type="int")
-    parser.add_option("-i", "--interface", dest="interface",
+    group.add_option("-i", "--interface", dest="interface",
         help="Interface daemon will listen for bittorrent connections on, \
 this should be an IP address", metavar="IFACE",
         action="store", type="str")
-    parser.add_option("-u", "--ui-interface", dest="ui_interface",
+    group.add_option("-u", "--ui-interface", dest="ui_interface",
         help="Interface daemon will listen for UI connections on, this should be\
  an IP address", metavar="IFACE", action="store", type="str")
     if not (deluge.common.windows_check() or deluge.common.osx_check()):
-        parser.add_option("-d", "--do-not-daemonize", dest="donot",
+        group.add_option("-d", "--do-not-daemonize", dest="donot",
             help="Do not daemonize", action="store_true", default=False)
-    parser.add_option("-c", "--config", dest="config",
-        help="Set the config location", action="store", type="str")
-    parser.add_option("-l", "--logfile", dest="logfile",
-        help="Set the logfile location", action="store", type="str")
-    parser.add_option("-P", "--pidfile", dest="pidfile",
+    group.add_option("-P", "--pidfile", dest="pidfile",
         help="Use pidfile to store process id", action="store", type="str")
     if not deluge.common.windows_check():
-        parser.add_option("-U", "--user", dest="user",
+        group.add_option("-U", "--user", dest="user",
             help="User to switch to. Only use it when starting as root", action="store", type="str")
-        parser.add_option("-g", "--group", dest="group",
+        group.add_option("-g", "--group", dest="group",
             help="Group to switch to. Only use it when starting as root", action="store", type="str")
-    parser.add_option("-L", "--loglevel", dest="loglevel",
-        help="Set the log level: none, info, warning, error, critical, debug", action="store", type="str")
-    parser.add_option("-q", "--quiet", dest="quiet",
-        help="Sets the log level to 'none', this is the same as `-L none`", action="store_true", default=False)
-    parser.add_option("-r", "--rotate-logs",
-        help="Rotate logfiles.", action="store_true", default=False)
-    parser.add_option("--profile", dest="profile", action="store_true", default=False,
+    group.add_option("--profile", dest="profile", action="store_true", default=False,
         help="Profiles the daemon")
+
+    parser.add_option_group(group)
 
     # Get the options and args from the OptionParser
     (options, args) = parser.parse_args()
-
-    if options.quiet:
-        options.loglevel = "none"
-
-    logfile_mode = 'w'
-    if options.rotate_logs:
-        logfile_mode = 'a'
-
-    # Setup the logger
-    deluge.log.setupLogger(level=options.loglevel, filename=options.logfile,
-                           filemode=logfile_mode)
-
-    import deluge.configmanager
-    if options.config:
-        if not deluge.configmanager.set_config_dir(options.config):
-            print("There was an error setting the config dir! Exiting..")
-            sys.exit(1)
 
     # Sets the options.logfile to point to the default location
     def open_logfile():
