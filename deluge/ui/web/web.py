@@ -36,10 +36,10 @@
 import os
 
 import deluge.common
-from deluge.ui.ui import _UI, UI
+from deluge.ui.ui import _UI
 from optparse import OptionGroup
 
-class WebUI(UI):
+class WebUI:
     def __init__(self, args):
         import server
         deluge_web = server.DelugeWeb()

@@ -40,10 +40,6 @@ import deluge.configmanager
 import deluge.log
 from deluge.commonoptions import CommonOptionParser
 
-DEFAULT_PREFS = {
-    "default_ui": "gtk"
-}
-
 if 'dev' not in deluge.common.get_version():
     import warnings
     warnings.filterwarnings('ignore', category=DeprecationWarning, module='twisted')
@@ -84,48 +80,3 @@ class _UI(object):
         log.debug("args: %s", self.__args)
         log.info("Starting ui..")
 
-class UI:
-    def __init__(self, options, args, ui_args):
-        import logging
-        log = logging.getLogger(__name__)
-        log.debug("UI init..")
-
-        # Set the config directory
-        deluge.configmanager.set_config_dir(options.config)
-
-        config = deluge.configmanager.ConfigManager("ui.conf", DEFAULT_PREFS)
-
-        if not options.ui:
-            selected_ui = config["default_ui"]
-        else:
-            selected_ui = options.ui
-
-        config.save()
-        del config
-
-        try:
-            if selected_ui == "gtk":
-                log.info("Starting GtkUI..")
-                from deluge.ui.gtkui.gtkui import GtkUI
-                ui = GtkUI(args)
-            elif selected_ui == "web":
-                log.info("Starting WebUI..")
-                from deluge.ui.web.web import WebUI
-                ui = WebUI(args)
-            elif selected_ui == "console":
-                log.info("Starting ConsoleUI..")
-                from deluge.ui.console.main import ConsoleUI
-                ui = ConsoleUI(ui_args)
-        except ImportError, e:
-            import sys
-            import traceback
-            error_type, error_value, tb = sys.exc_info()
-            stack = traceback.extract_tb(tb)
-            last_frame = stack[-1]
-            if last_frame[0] == __file__:
-                log.error("Unable to find the requested UI: %s.  Please select a different UI with the '-u' option or alternatively use the '-s' option to select a different default UI.", selected_ui)
-            else:
-                log.exception(e)
-                log.error("There was an error whilst launching the request UI: %s", selected_ui)
-                log.error("Look at the traceback above for more information.")
-            sys.exit(1)
