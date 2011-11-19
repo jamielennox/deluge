@@ -71,21 +71,6 @@ import deluge.configmanager
 import deluge.common
 import deluge.error
 
-from deluge.ui.ui import _UI
-
-class Gtk(_UI):
-
-    help = """Starts the Deluge GTK+ interface"""
-
-    def __init__(self, *args, **kwargs):
-        super(Gtk, self).__init__("gtk", *args, **kwargs)
-
-    def start(self, args = None):
-        super(Gtk, self).start(args)
-        GtkUI(self.args)
-
-def start():
-    Gtk().start()
 
 DEFAULT_PREFS = {
     "classic_mode": True,

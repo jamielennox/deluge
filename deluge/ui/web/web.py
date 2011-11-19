@@ -48,6 +48,7 @@ class WebUI:
 class Web(_UI):
 
     help = """Starts the Deluge web interface"""
+    cmdline = """A web-based interface (http://localhost:8112)"""
 
     def __init__(self, *args, **kwargs):
         super(Web, self).__init__("web", *args, **kwargs)

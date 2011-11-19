@@ -1,1 +1,4 @@
-from web import start
+from web import Web
+
+def start(): 
+    Web().start()
