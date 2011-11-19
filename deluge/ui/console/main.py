@@ -61,8 +61,8 @@ class Console(_UI):
 
     help = """Starts the Deluge console interface"""
 
-    def __init__(self):
-        super(Console, self).__init__("console")
+    def __init__(self, *args, **kwargs):
+        super(Console, self).__init__("console", *args, **kwargs)
         group = optparse.OptionGroup(self.parser, "Console Options","These options control how "
                                      "the console connects to the daemon.  These options will be "
                                      "used if you pass a command, or if you have autoconnect "
@@ -114,8 +114,8 @@ class Console(_UI):
                                        cmds=self.cmds)
         self.parser.add_option_group(cmd_group)
 
-    def start(self):
-        super(Console, self).start()
+    def start(self, args = None):
+        super(Console, self).start(args)
         ConsoleUI(self.args,self.cmds,(self.options.daemon_addr,
                   self.options.daemon_port,self.options.daemon_user,
                   self.options.daemon_pass))

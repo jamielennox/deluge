@@ -49,8 +49,8 @@ class Web(_UI):
 
     help = """Starts the Deluge web interface"""
 
-    def __init__(self):
-        super(Web, self).__init__("web")
+    def __init__(self, *args, **kwargs):
+        super(Web, self).__init__("web", *args, **kwargs)
         self.__server =  None
 
         group = OptionGroup(self.parser, "Web Options")
@@ -92,8 +92,8 @@ class Web(_UI):
     def server(self):
         return self.__server
 
-    def start(self):
-        super(Web, self).start()
+    def start(self, args = None):
+        super(Web, self).start(args)
 
         # Steps taken from http://www.faqs.org/faqs/unix-faq/programmer/faq/
         # Section 1.7

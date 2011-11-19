@@ -35,6 +35,7 @@
 
 import sys
 import logging
+import optparse
 import deluge.common
 import deluge.configmanager
 import deluge.log
@@ -46,14 +47,14 @@ if 'dev' not in deluge.common.get_version():
 
 class _UI(object):
 
-    def __init__(self, name="gtk"):
+    def __init__(self, name="gtk", skip_common = False):
         self.__name = name
         if name == "gtk":
             deluge.common.setup_translations(setup_pygtk=True)
         else:
             deluge.common.setup_translations()
 
-        self.__parser = CommonOptionParser()
+        self.__parser = optparse.OptionParser() if skip_common else CommonOptionParser()
 
     @property
     def name(self):
@@ -71,8 +72,11 @@ class _UI(object):
     def args(self):
         return self.__args
 
-    def start(self):
-        (self.__options, self.__args) = self.__parser.parse_args()
+    def start(self, args = None):
+        if args is None: 
+            args = sys.argv[1:]
+
+        self.__options, self.__args = self.__parser.parse_args(args)
 
         log = logging.getLogger(__name__)
         log.info("Deluge ui %s", deluge.common.get_version())
